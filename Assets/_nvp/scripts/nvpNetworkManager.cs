@@ -37,6 +37,7 @@ public class nvpNetworkManager : MonoBehaviour {
 
     private void LoginPlayer(object s, object e)
     {
+        Debug.Log("LoginPlayer called");
         _playerId = (int)e;
         this.LoadPlayerSettings();
 
@@ -57,7 +58,7 @@ public class nvpNetworkManager : MonoBehaviour {
         // create a session
         _session = await _client.AuthenticateEmailAsync(_userName, _password);
 
-        Debug.Log("Session created");
+        nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnSessionCreated, this, null);
     }
 
     private void LoadPlayerSettings(){

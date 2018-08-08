@@ -17,4 +17,13 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_nvp/scenes/menuEditPlayer2Settings.unity
     guid: 16f7e1a9a1b58044390648a35938c389
+  - enabled: 1
+    path: Assets/_nvp/scenes/menuWaiting.unity
+    guid: 1d74994832330bb4283e9547a28a4500
+  - enabled: 1
+    path: Assets/_nvp/scenes/menuMatchOptions.unity
+    guid: ba7d7a0378121054282da9df6d9d008a
+  - enabled: 1
+    path: Assets/_nvp/scenes/gameMain.unity
+    guid: f2c08c672d0d130429c20a9b4d5e0fa5
   m_configObjects: {}

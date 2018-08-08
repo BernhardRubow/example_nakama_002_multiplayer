@@ -11,7 +11,8 @@ namespace newvisionsproject.managers.events
         OnGameInitialized,
         OnEditPlayerSettingsRequested,
         OnPlayerSettingsSaved,
-        OnLoginAsPlayerRequested
+        OnLoginAsPlayerRequested,
+        OnSessionCreated
     }
 
     public class nvpEventManager : MonoBehaviour

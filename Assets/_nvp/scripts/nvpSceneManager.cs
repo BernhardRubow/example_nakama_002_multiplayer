@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using newvisionsproject.managers.events;
+using System;
 
 public class nvpSceneManager : MonoBehaviour {
 
 	// +++ fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	private Stack<string> _scenes = new Stack<string>();
+	private string _currentScene = "";
 
 
 
@@ -25,38 +26,42 @@ public class nvpSceneManager : MonoBehaviour {
 	}
 
 	void OnGameInitialized(object s, object e){
-		LoadSceneToStack("menuMain");
+		LoadScene("menuMain");
 	}
 
 	void OnEditPlayerSettingsRequested(object s, object e){
 		int playerIndex = (int)e;
 		if(playerIndex == 1){
-			this.LoadSceneToStack("menuEditPlayer1Settings");
+			this.LoadScene("menuEditPlayer1Settings");
+
 		}
 		else{
-			this.LoadSceneToStack("menuEditPlayer2Settings");
+			this.LoadScene("menuEditPlayer2Settings");
 		}
 	}
 
 	void OnPlayerSettingsSaved(object s, object e){
-		this.CloseCurrentScene();
+		this.LoadScene("menuMain");
 	}
+
+    private void OnLoginAsPlayerRequested(object arg1, object arg2)
+    {
+        this.LoadScene("menuWaiting");
+    }
+
+    private void OnSessionCreated(object arg1, object arg2)
+    {
+        this.LoadScene("menuMatchOptions");
+    }
 
 
 
 
 	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void LoadSceneToStack(string sceneName){
-
-		if(_scenes.Count > 0) SceneManager.UnloadSceneAsync(_scenes.Peek());
-		_scenes.Push(sceneName);
-		SceneManager.LoadScene(_scenes.Peek(), LoadSceneMode.Additive);
-	}
-
-	void CloseCurrentScene(){
-		var scene = _scenes.Pop();
-		SceneManager.UnloadSceneAsync(scene);
-		SceneManager.LoadScene(_scenes.Peek(), LoadSceneMode.Additive);
+	void LoadScene(string sceneName){
+		if(_currentScene != string.Empty) SceneManager.UnloadSceneAsync(_currentScene);
+		SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+		_currentScene = sceneName;
 	}
 
 
@@ -65,12 +70,16 @@ public class nvpSceneManager : MonoBehaviour {
 		nvpEventManager.INSTANCE.SubscribeToEvent(GameEvents.OnGameInitialized, OnGameInitialized);
 		nvpEventManager.INSTANCE.SubscribeToEvent(GameEvents.OnEditPlayerSettingsRequested, OnEditPlayerSettingsRequested);
 		nvpEventManager.INSTANCE.SubscribeToEvent(GameEvents.OnPlayerSettingsSaved, OnPlayerSettingsSaved);
+		nvpEventManager.INSTANCE.SubscribeToEvent(GameEvents.OnLoginAsPlayerRequested, OnLoginAsPlayerRequested);
+		nvpEventManager.INSTANCE.SubscribeToEvent(GameEvents.OnSessionCreated, OnSessionCreated);
 
 	}
 
-	void UnsubscribeFromEvents(){
+    void UnsubscribeFromEvents(){
 		nvpEventManager.INSTANCE.UnsubscribeFromEvent(GameEvents.OnGameInitialized, OnGameInitialized);
 		nvpEventManager.INSTANCE.UnsubscribeFromEvent(GameEvents.OnEditPlayerSettingsRequested, OnEditPlayerSettingsRequested);
 		nvpEventManager.INSTANCE.UnsubscribeFromEvent(GameEvents.OnPlayerSettingsSaved, OnPlayerSettingsSaved);
+		nvpEventManager.INSTANCE.UnsubscribeFromEvent(GameEvents.OnLoginAsPlayerRequested, OnLoginAsPlayerRequested);
+		nvpEventManager.INSTANCE.UnsubscribeFromEvent(GameEvents.OnSessionCreated, OnSessionCreated);
 	}
 }
