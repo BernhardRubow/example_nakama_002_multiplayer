@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,20 +12,34 @@ public class TemplateScript : MonoBehaviour {
 
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start () {
-		
-	}
-	
-	void Update () {
-		
+		SubscribeToEvents();
 	}
 
+    void Update () {
+		
+	}
+
+	void OnDestroy(){
+		UnsubscribeFromEvents();
+	}
 
 
 
-	// +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 
 
-	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private void SubscribeToEvents()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void UnsubscribeFromEvents()
+    {
+        throw new NotImplementedException();
+    }
 }

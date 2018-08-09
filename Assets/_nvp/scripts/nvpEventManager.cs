@@ -12,7 +12,17 @@ namespace newvisionsproject.managers.events
         OnEditPlayerSettingsRequested,
         OnPlayerSettingsSaved,
         OnLoginAsPlayerRequested,
-        OnSessionCreated
+        OnMakeMatchRequested,
+        OnStartMatchMakingRequested,
+        OnJoinMatchRequested,
+
+        // nakame driven events
+        OnNakama_SessionCreated,
+        OnNakama_MatchMakerTicketReceived,
+        OnNakama_SocketConnected,
+        OnNakama_SocketDisconnected,
+        OnNakama_MatchFound,
+        OnNakama_MatchStarted
     }
 
     public class nvpEventManager : MonoBehaviour
@@ -45,7 +55,7 @@ namespace newvisionsproject.managers.events
 
         // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        public void SubscribeToEvent(GameEvents e, Action<object, object> callback)
+        public void Subscribe(GameEvents e, Action<object, object> callback)
         {
             if (!eventCallbacks.ContainsKey(e))
             {
@@ -56,7 +66,7 @@ namespace newvisionsproject.managers.events
         }
 
 
-        public void UnsubscribeFromEvent(GameEvents e, Action<object, object> observer)
+        public void Unsubscribe(GameEvents e, Action<object, object> observer)
         {
             if (!eventCallbacks.ContainsKey(e)) return;
 

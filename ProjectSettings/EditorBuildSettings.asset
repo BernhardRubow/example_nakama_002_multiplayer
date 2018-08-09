@@ -24,6 +24,9 @@ EditorBuildSettings:
     path: Assets/_nvp/scenes/menuMatchOptions.unity
     guid: ba7d7a0378121054282da9df6d9d008a
   - enabled: 1
+    path: Assets/_nvp/scenes/menuMatchMaking.unity
+    guid: 14c5a7029ff9bab4b80808fd0ded722e
+  - enabled: 1
     path: Assets/_nvp/scenes/gameMain.unity
     guid: f2c08c672d0d130429c20a9b4d5e0fa5
   m_configObjects: {}
