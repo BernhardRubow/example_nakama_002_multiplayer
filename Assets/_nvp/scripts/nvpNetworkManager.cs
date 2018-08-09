@@ -136,7 +136,6 @@ public class nvpNetworkManager : MonoBehaviour {
 
         // create a session
         _session = await _client.AuthenticateEmailAsync(_userName, _password);
-
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_SessionCreated, this, _session);
     }
 
