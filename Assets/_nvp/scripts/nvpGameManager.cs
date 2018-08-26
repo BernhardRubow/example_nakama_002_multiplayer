@@ -13,6 +13,12 @@ public class nvpGameManager : MonoBehaviour
 
 
 
+
+    // +++ editor fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    [SerializeField] private string host = "0.0.0.0";
+    [SerializeField] private int port = 7350;
+
+
     // +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     void Start()
     {
@@ -32,8 +38,8 @@ public class nvpGameManager : MonoBehaviour
 		nvpGameManager.SCENES = new Dictionary<int, string>();
 		nvpGameManager.SCENES[0] = "menuMain";
 
-        nvpGameManager.HOST = "192.168.160.151";
-        nvpGameManager.PORT = 7350;
+        nvpGameManager.HOST = host;
+        nvpGameManager.PORT = port;
 
 
 		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnGameInitialized, this, null);
