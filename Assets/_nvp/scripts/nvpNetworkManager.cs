@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using newvisionsproject.managers.events;
 using Nakama;
@@ -71,16 +72,7 @@ public class nvpNetworkManager : MonoBehaviour {
     }
 
     private void OnMatchState(object s, IMatchState msm){
-
-    }
-
-
-
-
-    // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    private async void OnJoinMatchRequested(object arg1, object arg2)
-    {
-        await JoinMatchAsync();
+        // code for evaluating game messages
     }
 
 
@@ -110,7 +102,7 @@ public class nvpNetworkManager : MonoBehaviour {
 
 
 
-    // +++ public class methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++ Async API ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     public async Task LoginPlayerAsync(int playerId)
     {
         this.LoadPlayerSettings(playerId);
@@ -152,9 +144,19 @@ public class nvpNetworkManager : MonoBehaviour {
 
         // persisting own presence
         _self = _match.Self;
-        _connectedUsers.AddRange(_match.Presences);
+        _connectedUsers.AddRange(_match.Presences);        
+    }   
 
-        
+    public async Task UpdatePlayerSettingsAsync(string userName)
+    {
+        await _client.UpdateAccountAsync(_session, null, userName, null, null, null);
+    }
+
+    public List<IUserPresence> GetConnectedUsers() => _connectedUsers;
+
+    public async Task<IApiUsers> FetchUsersAsync(string[] ids){
+        IApiUsers result = await _client.GetUsersAsync(_session, ids);   
+        return result;
     }
 }
 

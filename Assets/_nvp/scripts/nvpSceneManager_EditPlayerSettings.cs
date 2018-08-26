@@ -96,6 +96,7 @@ public class nvpSceneManager_EditPlayerSettings : MonoBehaviour {
 
 	async Task UpdateServerSettings(){
 		await _networkManager.LoginPlayerAsync(_playerIndex);
+        await _networkManager.UpdatePlayerSettingsAsync(_userName.text);
 	}
 
     private void SubscribeToEvents()
