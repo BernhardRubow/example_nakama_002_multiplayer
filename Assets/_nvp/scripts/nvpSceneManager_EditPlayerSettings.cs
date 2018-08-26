@@ -9,6 +9,7 @@ public class nvpSceneManager_EditPlayerSettings : MonoBehaviour {
 	// +++ fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	[SerializeField] InputField _email;
 	[SerializeField] InputField _password;
+	[SerializeField] InputField _userName;
 	[SerializeField] int _playerIndex;
 
 
@@ -16,10 +17,6 @@ public class nvpSceneManager_EditPlayerSettings : MonoBehaviour {
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start () {
 		Init();
-	}
-	
-	void Update () {
-		
 	}
 
 
@@ -29,10 +26,12 @@ public class nvpSceneManager_EditPlayerSettings : MonoBehaviour {
 	public void OnSaveClicked(){
 		Debug.Log("OnSaveClicked called");
 		if(_playerIndex == 1){
+			PlayerPrefs.SetString("Player1Name", _userName.text);
 			PlayerPrefs.SetString("Player1Email",_email.text);
 			PlayerPrefs.SetString("Player1Password", _password.text);
 		}
-		else {			
+		else {	
+			PlayerPrefs.SetString("Player2Name", _userName.text);		
 			PlayerPrefs.SetString("Player2Email",_email.text);
 			PlayerPrefs.SetString("Player2Password", _password.text);
 		}
@@ -45,10 +44,12 @@ public class nvpSceneManager_EditPlayerSettings : MonoBehaviour {
 	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Init(){
 		if(_playerIndex == 1){
+			_userName.text = PlayerPrefs.GetString("Player1Name");
 			_email.text = PlayerPrefs.GetString("Player1Email");
 			_password.text = PlayerPrefs.GetString("Player1Password");
 		}
 		else {			
+			_userName.text = PlayerPrefs.GetString("Player2Name");
 			_email.text = PlayerPrefs.GetString("Player2Email");
 			_password.text = PlayerPrefs.GetString("Player2Password");
 		}
