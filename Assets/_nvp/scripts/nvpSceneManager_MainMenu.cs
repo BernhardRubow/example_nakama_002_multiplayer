@@ -6,13 +6,16 @@ using newvisionsproject.managers.events;
 public class nvpSceneManager_MainMenu : MonoBehaviour {
 
 	// +++ fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+	private nvpNetworkManager _networkManager;
+	private nvpSceneManager _sceneManager;
 
 
 
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start () {
-		
+		// Get references
+		_networkManager = GameObject.Find("managers").GetComponent<nvpNetworkManager>();
+		_sceneManager = GameObject.Find("managers").GetComponent<nvpSceneManager>();
 	}
 	
 	void Update () {
@@ -23,14 +26,24 @@ public class nvpSceneManager_MainMenu : MonoBehaviour {
 
 
 	// +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	public void OnLoginAsPlayerClicked(int playerId){
+	public async void OnLoginAsPlayerClicked(int playerId){
 		Debug.Log("OnLoginAsPlayerClicked called");
-		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnLoginAsPlayerRequested, this, playerId);
+
+		// invoke event to show waiting screen
+		_sceneManager.LoadScene("menuWaiting");
+
+		// Wait for the networkmanger to connect the player
+		await _networkManager.LoginPlayerAsync(playerId);
+
+		// then invoke event to open match options
+		_sceneManager.LoadScene("menuMatchOptions");
 	}
 
 	public void OnEditPlayerSettings(int playerId){
 		Debug.Log("OnEditPlayerSettings called");
-		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnEditPlayerSettingsRequested, this, playerId);
+
+		// invoke event to open player settings scenen
+		_sceneManager.LoadPlayerSettings(playerId);
 	}
 
 

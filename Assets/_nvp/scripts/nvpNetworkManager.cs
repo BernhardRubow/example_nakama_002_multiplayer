@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,8 +9,7 @@ using Nakama.TinyJson;
 
 public class nvpNetworkManager : MonoBehaviour {
 
-	// +++ fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	private int _playerId;
+	// +++ nakama fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
 	private IClient _client;
     private ISocket _socket;
     private IChannel _channel;
@@ -20,6 +20,11 @@ public class nvpNetworkManager : MonoBehaviour {
     private IMatchmakerTicket _matchMakerTicket;
     private IMatch _match;
 
+
+
+
+    // +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private int _playerId;
     private string _id;
     private string _userName;
     private string _password;
@@ -28,13 +33,10 @@ public class nvpNetworkManager : MonoBehaviour {
 
 
 
+
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start () {
-		SubscribeToEvents();
-	}
-
-    void Destroy () {
-		UnsubscribeFromEvents();
+		
 	}
 
 
@@ -42,7 +44,7 @@ public class nvpNetworkManager : MonoBehaviour {
 
     // +++ nakama event handler +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private async void OnMatchmakerMatched(object s, IMatchmakerMatched matched){
+    private void OnMatchmakerMatched(object s, IMatchmakerMatched matched){
 
         _matchMakerMatch = matched;
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_MatchFound, this, _matchMakerMatch);
@@ -74,18 +76,49 @@ public class nvpNetworkManager : MonoBehaviour {
 
 
 
+
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private void LoginPlayer(object s, object e)
+    private async void OnJoinMatchRequested(object arg1, object arg2)
     {
-        Debug.Log("LoginPlayer called");
-        _playerId = (int)e;
-        this.LoadPlayerSettings();
-
-        this.StartNakameClient();
+        await JoinMatchAsync();
     }
 
-    private async void OnMakeMatchRequested(object s, object e)
+
+
+
+    // +++ private class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private async Task StartNakameClient(){
+
+        // get the nakama client
+        _client = new Client("defaultkey", nvpGameManager.HOST, nvpGameManager.PORT, false);
+
+        // create a session
+        _session = await _client.AuthenticateEmailAsync(_userName, _password);
+    }
+
+    private void LoadPlayerSettings(int playerId){
+        if(playerId == 1){
+            _userName = PlayerPrefs.GetString("Player1Email");
+            _password = PlayerPrefs.GetString("Player1Password");            
+        }
+        else {
+            _userName = PlayerPrefs.GetString("Player2Email");
+            _password = PlayerPrefs.GetString("Player2Password");            
+        }
+    }
+
+
+
+
+    // +++ public class methods +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public async Task LoginPlayerAsync(int playerId)
+    {
+        this.LoadPlayerSettings(playerId);
+
+        await this.StartNakameClient();
+    }
+
+    public async Task CreateMatchMakerMatchAsync()
     {
         // Init List of connected users
         _connectedUsers = new List<IUserPresence>(0);
@@ -108,10 +141,9 @@ public class nvpNetworkManager : MonoBehaviour {
         _matchMakerTicket = await _socket.AddMatchmakerAsync(query, _minPlayers, _maxPlayers);
 
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_MatchMakerTicketReceived, this, _matchMakerTicket);
-
     }
 
-    private async void OnJoinMatchRequested(object arg1, object arg2)
+    public async Task JoinMatchAsync()
     {
         Debug.Log("awaiting match");
         // await joining match
@@ -122,46 +154,7 @@ public class nvpNetworkManager : MonoBehaviour {
         _self = _match.Self;
         _connectedUsers.AddRange(_match.Presences);
 
-        nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_MatchStarted, this, _match);   
-    }
-
-
-
-
-    // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    private async void StartNakameClient(){
         
-        // get the nakama client
-        _client = new Client("defaultkey", nvpGameManager.HOST, nvpGameManager.PORT, false);
-
-        // create a session
-        _session = await _client.AuthenticateEmailAsync(_userName, _password);
-        nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_SessionCreated, this, _session);
-    }
-
-    private void LoadPlayerSettings(){
-        if(_playerId == 1){
-            _userName = PlayerPrefs.GetString("Player1Email");
-            _password = PlayerPrefs.GetString("Player1Password");            
-        }
-        else {
-            _userName = PlayerPrefs.GetString("Player2Email");
-            _password = PlayerPrefs.GetString("Player2Password");            
-        }
-    }
-
-    private void SubscribeToEvents()
-    {
-        nvpEventManager.INSTANCE.Subscribe(GameEvents.OnLoginAsPlayerRequested, LoginPlayer);
-        nvpEventManager.INSTANCE.Subscribe(GameEvents.OnMakeMatchRequested, OnMakeMatchRequested);
-        nvpEventManager.INSTANCE.Subscribe(GameEvents.OnJoinMatchRequested, OnJoinMatchRequested);
-    }
-
-    private void UnsubscribeFromEvents()
-    {
-        nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnLoginAsPlayerRequested, LoginPlayer);
-        nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnMakeMatchRequested, OnMakeMatchRequested);
-        nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnJoinMatchRequested, OnJoinMatchRequested);
     }
 }
 

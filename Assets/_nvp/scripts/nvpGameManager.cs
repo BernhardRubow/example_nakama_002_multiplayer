@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using newvisionsproject.managers.events;
+using System;
 
 public class nvpGameManager : MonoBehaviour
 {
@@ -29,12 +30,8 @@ public class nvpGameManager : MonoBehaviour
 
 
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-
-
-
     // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void InitGame(){
+    void InitGame(){
 		nvpGameManager.SCENES = new Dictionary<int, string>();
 		nvpGameManager.SCENES[0] = "menuMain";
 

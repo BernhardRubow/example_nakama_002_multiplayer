@@ -9,11 +9,6 @@ namespace newvisionsproject.managers.events
     public enum GameEvents
     {
         OnGameInitialized,
-        OnEditPlayerSettingsRequested,
-        OnPlayerSettingsSaved,
-        OnLoginAsPlayerRequested,
-        OnMakeMatchRequested,
-        OnStartMatchMakingRequested,
         OnJoinMatchRequested,
 
         // nakame driven events
@@ -22,7 +17,7 @@ namespace newvisionsproject.managers.events
         OnNakama_SocketConnected,
         OnNakama_SocketDisconnected,
         OnNakama_MatchFound,
-        OnNakama_MatchStarted
+        OnNakama_MatchStarted,
     }
 
     public class nvpEventManager : MonoBehaviour

@@ -11,14 +11,17 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
 	[SerializeField] private GameObject _sceneUI;
 
 	private List<Action> _deferedActions = new List<Action>();
+	private nvpNetworkManager _networkManager;
+	private nvpSceneManager _sceneManager;
 
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void Start () {
+	async void Start () {
+		Init();
+
 		SubscribeToEvents();
 
-		// Start Matchmaking
-		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnMakeMatchRequested, this, null);
-		
+		// Start Matchmaking		
+		await _networkManager.CreateMatchMakerMatchAsync();
 	}
 
     void Update () {
@@ -36,8 +39,10 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
 
 
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	public void OnJoinMatchClicked(){
-		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnJoinMatchRequested, this, null);
+	public async void OnJoinMatchClicked(){
+		await _networkManager.JoinMatchAsync();
+
+		_sceneManager.LoadScene("gameMain");
 	}
 
     private void OnNakama_SocketConnected(object arg1, object arg2)
@@ -59,6 +64,11 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
 
 
     // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	private void Init(){
+		// get references
+		_networkManager = GameObject.Find("managers").GetComponent<nvpNetworkManager>();
+		_sceneManager = GameObject.Find("managers").GetComponent<nvpSceneManager>();
+	}
 
     private void SubscribeToEvents()
     {

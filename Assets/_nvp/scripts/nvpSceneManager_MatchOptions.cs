@@ -6,13 +6,13 @@ using newvisionsproject.managers.events;
 public class nvpSceneManager_MatchOptions : MonoBehaviour {
 
 	// +++ fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+	nvpSceneManager _sceneManager;
 
 
 
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start () {
-		
+		Init();
 	}
 	
 	void Update () {
@@ -25,7 +25,8 @@ public class nvpSceneManager_MatchOptions : MonoBehaviour {
 	// +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	public void OnMatchMakerClicked(){
 		Debug.Log("OnMatchMakerClicked  called");
-		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnStartMatchMakingRequested, this, null);
+
+		_sceneManager.LoadScene("menuMatchMaking");
 	}
 
 	public void OnCreateMatchClicked(){
@@ -39,4 +40,8 @@ public class nvpSceneManager_MatchOptions : MonoBehaviour {
 
 
 	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	private void Init(){
+		// get references
+		_sceneManager = GameObject.Find("managers").GetComponent<nvpSceneManager>();
+	}
 }

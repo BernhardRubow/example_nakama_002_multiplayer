@@ -29,9 +29,18 @@ public class nvpSceneManager : MonoBehaviour {
 		LoadScene("menuMain");
 	}
 
-	void OnEditPlayerSettingsRequested(object s, object e){
-		int playerIndex = (int)e;
-		if(playerIndex == 1){
+
+
+
+	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	public void LoadScene(string sceneName){
+		if(_currentScene != string.Empty) SceneManager.UnloadSceneAsync(_currentScene);
+		SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+		_currentScene = sceneName;
+	}
+
+	public void LoadPlayerSettings(int playerId){
+		if(playerId == 1){
 			this.LoadScene("menuEditPlayer1Settings");
 
 		}
@@ -40,60 +49,12 @@ public class nvpSceneManager : MonoBehaviour {
 		}
 	}
 
-	void OnPlayerSettingsSaved(object s, object e){
-		this.LoadScene("menuMain");
-	}
-
-    private void OnLoginAsPlayerRequested(object s, object e)
-    {
-        this.LoadScene("menuWaiting");
-    }
-
-    private void OnSessionCreated(object s, object e)
-    {
-        this.LoadScene("menuMatchOptions");
-    }
-
-	private void OnStartMatchMakingRequested(object s, object e)
-	{
-		this.LoadScene("menuMatchMaking");
-	}
-
-    private void OnNakama_MatchStarted(object arg1, object arg2)
-    {
-        this.LoadScene("gameMain");
-    }
-
-
-
-
-	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void LoadScene(string sceneName){
-		if(_currentScene != string.Empty) SceneManager.UnloadSceneAsync(_currentScene);
-		SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-		_currentScene = sceneName;
-	}
-
-
-
 	void SubscribeToEvents(){
 		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnGameInitialized, OnGameInitialized);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnEditPlayerSettingsRequested, OnEditPlayerSettingsRequested);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnPlayerSettingsSaved, OnPlayerSettingsSaved);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnLoginAsPlayerRequested, OnLoginAsPlayerRequested);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnNakama_SessionCreated, OnSessionCreated);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnStartMatchMakingRequested, OnStartMatchMakingRequested);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnNakama_MatchStarted, OnNakama_MatchStarted);
 
 	}
 
     void UnsubscribeFromEvents(){
 		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnGameInitialized, OnGameInitialized);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnEditPlayerSettingsRequested, OnEditPlayerSettingsRequested);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnPlayerSettingsSaved, OnPlayerSettingsSaved);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnLoginAsPlayerRequested, OnLoginAsPlayerRequested);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnNakama_SessionCreated, OnSessionCreated);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnStartMatchMakingRequested, OnStartMatchMakingRequested);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnNakama_MatchStarted, OnNakama_MatchStarted);
 	}
 }
