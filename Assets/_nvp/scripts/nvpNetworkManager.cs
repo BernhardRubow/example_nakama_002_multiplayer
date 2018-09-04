@@ -8,18 +8,20 @@ using newvisionsproject.managers.events;
 using Nakama;
 using Nakama.TinyJson;
 
-public class nvpNetworkManager : MonoBehaviour {
+public class nvpNetworkManager : MonoBehaviour
+{
 
-	// +++ nakama fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
-	private IClient _client;
+    // +++ nakama fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++	
+    public IUserPresence self;
+    private IClient _client;
     private ISocket _socket;
     private IChannel _channel;
     private List<IUserPresence> _connectedUsers;
     private ISession _session;
-    private IUserPresence _self;
     private IMatchmakerMatched _matchMakerMatch;
     private IMatchmakerTicket _matchMakerTicket;
     private IMatch _match;
+    private string _matchId;
 
 
 
@@ -35,51 +37,70 @@ public class nvpNetworkManager : MonoBehaviour {
 
 
 
-	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void Start () {
-		
-	}
+    // +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    void Start()
+    {
+
+    }
 
 
 
 
     // +++ nakama event handler +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private void OnMatchmakerMatched(object s, IMatchmakerMatched matched){
+    private void OnMatchmakerMatched(object s, IMatchmakerMatched matched)
+    {
 
         _matchMakerMatch = matched;
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_MatchFound, this, _matchMakerMatch);
     }
 
-    private void OnConnect(object sender, EventArgs e){
+    private void OnConnect(object sender, EventArgs e)
+    {
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_SocketConnected, this, _socket);
     }
 
-    private void OnDisconnect(object sender, EventArgs e){
+    private void OnDisconnect(object sender, EventArgs e)
+    {
         nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_SocketDisconnected, this, null);
     }
 
-    private void OnMatchPresence(object s, IMatchPresenceEvent presenceChange){
+    private void OnMatchPresence(object s, IMatchPresenceEvent presenceChange)
+    {
         _connectedUsers.AddRange(presenceChange.Joins);
         foreach (var leave in presenceChange.Leaves)
         {
             _connectedUsers.RemoveAll(item => item.SessionId.Equals(leave.SessionId));
         };
         // Remove ourself from connected opponents.
-        _connectedUsers.RemoveAll(item => {
-            return _self != null && item.SessionId.Equals(_self.SessionId);
+        _connectedUsers.RemoveAll(item =>
+        {
+            return self != null && item.SessionId.Equals(self.SessionId);
         });
     }
 
-    private void OnMatchState(object s, IMatchState msm){
+    private void OnMatchState(object s, IMatchState state)
+    {
+        Debug.Log("OnMatchState Message");
         // code for evaluating game messages
+        var content = System.Text.Encoding.UTF8.GetString(state.State);
+        switch (state.OpCode)
+        {
+            case 101:
+                Debug.Log("A custom opcode.");
+                break;
+            default:
+                Debug.LogFormat("User {0} sent {1}", state.UserPresence.Username, content);
+                break;
+        }
     }
 
 
 
 
     // +++ private class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    private async Task StartNakameClient(){
+    private async Task StartNakameClient()
+    {
 
         // get the nakama client
         _client = new Client("defaultkey", nvpGameManager.HOST, nvpGameManager.PORT, false);
@@ -88,14 +109,17 @@ public class nvpNetworkManager : MonoBehaviour {
         _session = await _client.AuthenticateEmailAsync(_userName, _password);
     }
 
-    private void LoadPlayerSettings(int playerId){
-        if(playerId == 1){
+    private void LoadPlayerSettings(int playerId)
+    {
+        if (playerId == 1)
+        {
             _userName = PlayerPrefs.GetString("Player1Email");
-            _password = PlayerPrefs.GetString("Player1Password");            
+            _password = PlayerPrefs.GetString("Player1Password");
         }
-        else {
+        else
+        {
             _userName = PlayerPrefs.GetString("Player2Email");
-            _password = PlayerPrefs.GetString("Player2Password");            
+            _password = PlayerPrefs.GetString("Player2Password");
         }
     }
 
@@ -143,9 +167,13 @@ public class nvpNetworkManager : MonoBehaviour {
         Debug.Log("match joined");
 
         // persisting own presence
-        _self = _match.Self;
-        _connectedUsers.AddRange(_match.Presences);        
-    }   
+        self = _match.Self;
+        _matchId = _match.Id;
+
+        Debug.LogFormat("MatchId: {0}", _matchId);
+
+        _connectedUsers.AddRange(_match.Presences);
+    }
 
     public async Task UpdatePlayerSettingsAsync(string userName)
     {
@@ -154,9 +182,19 @@ public class nvpNetworkManager : MonoBehaviour {
 
     public List<IUserPresence> GetConnectedUsers() => _connectedUsers;
 
-    public async Task<IApiUsers> FetchUsersAsync(string[] ids){
-        IApiUsers result = await _client.GetUsersAsync(_session, ids);   
+    public async Task<IApiUsers> FetchUsersAsync(string[] ids)
+    {
+        IApiUsers result = await _client.GetUsersAsync(_session, ids);
         return result;
+    }
+
+    public void SendDataMessage(string msg)
+    {
+        // using Nakama.TinyJson;
+        var id = _matchId;
+        var opCode = 1;
+        var newState = new Dictionary<string, string> { { "msg", msg } }.ToJson();
+        _socket.SendMatchState(id, opCode, newState);
     }
 }
 
