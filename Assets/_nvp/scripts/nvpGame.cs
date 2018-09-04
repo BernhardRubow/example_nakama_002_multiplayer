@@ -3,14 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
+using newvisionsproject.managers.events;
 
 public class nvpGame : MonoBehaviour
 {
 
     // +++ public fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    
     // +++ editor fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    [SerializeField] private Text _playerNumberDisplay;
+    [SerializeField] private Text _messageDisplay;
     // +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     nvpNetworkManager _networkManager;
+    
     private string _displayName;
 
 
@@ -21,6 +26,7 @@ public class nvpGame : MonoBehaviour
     {
         Init();
         StartCoroutine(WaitForPlayers());
+        SubcribeToEvents();
     }
 
     // Update is called once per frame
@@ -33,9 +39,24 @@ public class nvpGame : MonoBehaviour
 
 
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    void OnDestroy(){
+        UnsubscribeFromEvents();
+    }
+    
+    void OnMessageReceived(object s, object e){
+        string id = s as string;
+        _messageDisplay.text = e as string;
+    }
+
     IEnumerator WaitForPlayers()
     {
-        while (_networkManager.GetConnectedUsers().Count != 2) yield return new WaitForSeconds(1f);
+        int numberOfPlayers = 0;
+        while (numberOfPlayers != 2)
+        { 
+            numberOfPlayers = _networkManager.GetConnectedUsers().Count;
+            _playerNumberDisplay.text = string.Format("{0} Players in match online", numberOfPlayers);
+            yield return new WaitForSeconds(1f);
+        };
         DisplayUsersOnline();
     }
 
@@ -55,8 +76,6 @@ public class nvpGame : MonoBehaviour
                 Debug.Log("Call SendDataMessage");
                 _networkManager.SendDataMessage(string.Format("{0} greets {1}", _displayName, u.DisplayName));
             }
-
-
         }
     }
 
@@ -69,5 +88,13 @@ public class nvpGame : MonoBehaviour
         public void Init()
         {
             _networkManager = GameObject.Find("managers").GetComponent<nvpNetworkManager>();
+        }
+
+        void SubcribeToEvents(){
+            nvpEventManager.INSTANCE.Subscribe(GameEvents.OnMessageReceived, OnMessageReceived);
+        }
+
+        void UnsubscribeFromEvents(){            
+            nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnMessageReceived, OnMessageReceived);
         }
     }

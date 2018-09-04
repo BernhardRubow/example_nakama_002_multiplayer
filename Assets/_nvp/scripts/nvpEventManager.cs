@@ -13,11 +13,11 @@ namespace newvisionsproject.managers.events
 
         // nakame driven events
         OnNakama_SessionCreated,
-        OnNakama_MatchMakerTicketReceived,
         OnNakama_SocketConnected,
         OnNakama_SocketDisconnected,
         OnNakama_MatchFound,
         OnNakama_MatchStarted,
+        OnMessageReceived,
     }
 
     public class nvpEventManager : MonoBehaviour

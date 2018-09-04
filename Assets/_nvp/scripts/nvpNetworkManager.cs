@@ -72,11 +72,6 @@ public class nvpNetworkManager : MonoBehaviour
         {
             _connectedUsers.RemoveAll(item => item.SessionId.Equals(leave.SessionId));
         };
-        // Remove ourself from connected opponents.
-        _connectedUsers.RemoveAll(item =>
-        {
-            return self != null && item.SessionId.Equals(self.SessionId);
-        });
     }
 
     private void OnMatchState(object s, IMatchState state)
@@ -90,7 +85,8 @@ public class nvpNetworkManager : MonoBehaviour
                 Debug.Log("A custom opcode.");
                 break;
             default:
-                Debug.LogFormat("User {0} sent {1}", state.UserPresence.Username, content);
+                Debug.LogFormat("User {0} sent {1}", state.UserPresence.UserId, content);
+                nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnMessageReceived, state.UserPresence.UserId, content);
                 break;
         }
     }
@@ -155,8 +151,6 @@ public class nvpNetworkManager : MonoBehaviour
         var query = "*";
 
         _matchMakerTicket = await _socket.AddMatchmakerAsync(query, _minPlayers, _maxPlayers);
-
-        nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnNakama_MatchMakerTicketReceived, this, _matchMakerTicket);
     }
 
     public async Task JoinMatchAsync()

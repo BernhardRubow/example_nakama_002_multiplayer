@@ -13,6 +13,8 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
 	private nvpSceneManager _sceneManager;
 
 
+
+
 	// +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	async void Start () {
 		Init();
@@ -21,7 +23,8 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
 
 		// Start Matchmaking		
 		await _networkManager.CreateMatchMakerMatchAsync();
-		Debug.Log("Match matched");
+		
+		//
 		_sceneUI.SetActive(true);
 	}
 
@@ -48,11 +51,6 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
         Debug.Log("Socket Connected");
     }
 
-    private void OnNakama_SocketDisconnected(object arg1, object arg2)
-    {
-        Debug.Log("Socket Disconnected");
-    }
-
 
 
 
@@ -66,12 +64,10 @@ public class nvpSceneManager_MatchMaking : MonoBehaviour {
     private void SubscribeToEvents()
     {
 		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnNakama_SocketConnected, OnNakama_SocketConnected);
-		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnNakama_SocketDisconnected, OnNakama_SocketDisconnected);
     }
 
     private void UnsubscribeFromEvents()
     {
         nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnNakama_SocketConnected, OnNakama_SocketConnected);
-		nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnNakama_SocketDisconnected, OnNakama_SocketDisconnected);
     }
 }
