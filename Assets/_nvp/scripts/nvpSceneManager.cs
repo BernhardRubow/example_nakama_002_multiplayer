@@ -39,6 +39,11 @@ public class nvpSceneManager : MonoBehaviour {
 		_currentScene = sceneName;
 	}
 
+	private void SceneManagerOnSceneLoaded(Scene scene, LoadSceneMode mode)
+	{
+		SceneManager.SetActiveScene(scene);
+	}
+
 	public void LoadPlayerSettings(int playerId){
 		if(playerId == 1){
 			this.LoadScene("menuEditPlayer1Settings");
@@ -50,6 +55,7 @@ public class nvpSceneManager : MonoBehaviour {
 	}
 
 	void SubscribeToEvents(){
+		SceneManager.sceneLoaded += SceneManagerOnSceneLoaded;
 		nvpEventManager.INSTANCE.Subscribe(GameEvents.OnGameInitialized, OnGameInitialized);
 
 	}

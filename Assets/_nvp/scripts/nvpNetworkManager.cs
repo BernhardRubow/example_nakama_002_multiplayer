@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets._sts.scripts.messages;
 using UnityEngine;
 using newvisionsproject.managers.events;
 using Nakama;
@@ -76,19 +77,27 @@ public class nvpNetworkManager : MonoBehaviour
 
     private void OnMatchState(object s, IMatchState state)
     {
-        Debug.Log("OnMatchState Message");
         // code for evaluating game messages
         var content = System.Text.Encoding.UTF8.GetString(state.State);
-        switch (state.OpCode)
+	    object message = null;
+	    switch (state.OpCode)
         {
-            case 101:
-                Debug.Log("A custom opcode.");
-                break;
-            default:
-                Debug.LogFormat("User {0} sent {1}", state.UserPresence.UserId, content);
-                nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnMessageReceived, state.UserPresence.UserId, content);
-                break;
+			case PositionUpdateMessage.OpCode:
+				message = content.FromJson<PositionUpdateMessage>();
+				break;
+
+			case RocketFiredMessage.OpCode:
+				message = content.FromJson<RocketFiredMessage>();
+				break;
+
+            //default:
+            //    Debug.LogFormat("User {0} sent {1}", state.UserPresence.UserId, content);
+            //    nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnMessageReceived, state.UserPresence.UserId, content);
+            //    break;
         }
+
+	    if (message == null) return;
+		nvpEventManager.INSTANCE.InvokeEvent(GameEvents.OnMessageReceived, state.UserPresence.UserId, message);
     }
 
 
@@ -182,13 +191,12 @@ public class nvpNetworkManager : MonoBehaviour
         return result;
     }
 
-    public void SendDataMessage(string msg)
+    public void SendDataMessage<T>(int opCode, T msg)
     {
         // using Nakama.TinyJson;
         var id = _matchId;
-        var opCode = 1;
-        var newState = new Dictionary<string, string> { { "msg", msg } }.ToJson();
-        _socket.SendMatchState(id, opCode, newState);
+        //var newState = new Dictionary<string, string> { { "msg", msg } }.ToJson();
+        _socket.SendMatchState(id, opCode, msg.ToJson());
     }
 }
 
