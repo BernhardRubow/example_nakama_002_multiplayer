@@ -4,17 +4,25 @@ using UnityEngine;
 
 public class stsLanderController : MonoBehaviour
 {
+	// +++ public fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	public Vector2 ThrusterForce = new Vector2(5, 15);
+
+
+
+
+	// +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	private Vector3 _ForceVector;
 	private Rigidbody _Body;
-	private nvpGame _Game;
+	private nvpMultiplayerManager _MultiplayerManager;
 	private byte _PosUpdateCounter = 0;
 
-	// Use this for initialization
+
+
+
+	// +++ unity life cycle +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	void Start()
 	{
-		_Body = this.GetComponent<Rigidbody>();
-		_Game = GameObject.Find("sceneManagers").GetComponent<nvpGame>();
+		Init();
 	}
 
 
@@ -26,10 +34,18 @@ public class stsLanderController : MonoBehaviour
 
 		_PosUpdateCounter++;
 		if (_PosUpdateCounter % 6 == 0)
-		{;
-			_Game.SendPosition(this._Body.position);
+		{
+			_MultiplayerManager.SendPosition(this._Body.position);
 			_PosUpdateCounter = 0;
 		}
 	}
 
+
+
+
+	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	private void Init(){
+		_Body = this.GetComponent<Rigidbody>();
+		_MultiplayerManager = GameObject.Find("sceneManagers").GetComponent<nvpMultiplayerManager>();
+	}
 }

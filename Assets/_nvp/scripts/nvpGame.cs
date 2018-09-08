@@ -2,12 +2,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets._sts.scripts;
-using Assets._sts.scripts.messages;
 using UnityEngine;
 using UnityEngine.UI;
 using newvisionsproject.managers.events;
 using Nakama;
+using Assets._sts.scripts;
 
 public class nvpGame : MonoBehaviour
 {
@@ -80,10 +79,10 @@ public class nvpGame : MonoBehaviour
 
     private async void DisplayUsersOnline()
     {
-        IApiUsers result = await GetPlayerMetaData();
+        IApiUsers playerMetaData = await _networkManager.GetPlayerMetaData();
 
         // Spawn players
-        SpawnLocalAndRemotePlayer(result);
+        SpawnLocalAndRemotePlayer(playerMetaData);
 
         // reset players
         _playerNumberDisplay.text = "";
@@ -114,21 +113,9 @@ public class nvpGame : MonoBehaviour
         nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnMessageReceived, OnMessageReceived);
     }
 
-    public void SendPosition(Vector3 position)
+    private void SpawnLocalAndRemotePlayer(IApiUsers playerMetaData)
     {
-        var message = new PositionUpdateMessage(position);
-        _networkManager.SendDataMessage(PositionUpdateMessage.OpCode, message);
-    }
-
-    public void SendRocket(Vector3 position, Vector3 direction)
-    {
-        var message = new RocketFiredMessage(position, direction);
-        _networkManager.SendDataMessage(RocketFiredMessage.OpCode, message);
-    }
-
-    private void SpawnLocalAndRemotePlayer(IApiUsers result)
-    {
-        var users = result.Users.ToList();
+        var users = playerMetaData.Users.ToList();
         for (int i = 0, n = 2; i < n; i++)
         {
             var user = users[i];
@@ -139,13 +126,22 @@ public class nvpGame : MonoBehaviour
                 _playerSpawnPoints[i].position,
                 _playerSpawnPoints[i].rotation);
 
-            lander.GetComponentInChildren<TextMesh>().text = user.DisplayName;
+            // Make the lander a child of an existing game object in the scene
             lander.transform.parent = _landerParent;
+
+            // configure the lander's appearence
+            lander.GetComponentInChildren<TextMesh>().text = user.DisplayName;
             lander.GetComponent<Renderer>().material = Instantiate(_playerMaterials[i]);
 
+            // decide whether the thi script is executed on the local or on remote machine 
 
             if (_networkManager.self.Username != user.Username)
             {
+                // if the player we got from iterating the playerlist has 
+                // the same user name as the player on this machine
+                // we instantiate the local player
+                
+                // so we attach the remote player script
                 var controller = lander.AddComponent<stsRemoteController>();
                 _MessageHandlers.Add(controller);
 
@@ -155,6 +151,11 @@ public class nvpGame : MonoBehaviour
             }
             else
             {
+                // if the player we got from iterating the playerlist has 
+                // the same user name as the player on this machine
+                // we instantiate the local player
+
+                // so we ha to attach the local player script
                 lander.AddComponent<stsLanderController>();
 
                 var fireRocketComponent = lander.AddComponent<stsFireRocket>();
@@ -163,19 +164,6 @@ public class nvpGame : MonoBehaviour
         }
     }
 
-    private async System.Threading.Tasks.Task<IApiUsers> GetPlayerMetaData()
-    {
-        // list players in game in console
-        List<string> ids = _networkManager
-            .GetConnectedUsers()
-            .OrderBy(x => x.UserId)
-            .Select(x => x.UserId)
-            .ToList();
-
-        // Get Metadata for players
-        var result = await _networkManager
-            .FetchUsersAsync(ids.ToArray());
-        return result;
-    }
+    
 
 }

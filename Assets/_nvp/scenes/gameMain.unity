@@ -436,6 +436,7 @@ GameObject:
   m_Component:
   - component: {fileID: 591551143}
   - component: {fileID: 591551144}
+  - component: {fileID: 591551145}
   m_Layer: 0
   m_Name: sceneManagers
   m_TagString: Untagged
@@ -478,6 +479,17 @@ MonoBehaviour:
   _playerSpawnPoints:
   - {fileID: 1936579533}
   - {fileID: 1952238333}
+--- !u!114 &591551145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 591551142}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5596e6d3df8a184ca814b444eaeb831, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1088547462
 GameObject:
   m_ObjectHideFlags: 0

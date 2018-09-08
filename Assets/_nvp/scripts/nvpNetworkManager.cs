@@ -198,5 +198,20 @@ public class nvpNetworkManager : MonoBehaviour
         //var newState = new Dictionary<string, string> { { "msg", msg } }.ToJson();
         _socket.SendMatchState(id, opCode, msg.ToJson());
     }
+    
+    public async Task<IApiUsers> GetPlayerMetaData()
+    {
+        // list players in game in console
+        List<string> ids = _connectedUsers            
+            .OrderBy(x => x.UserId)
+            .Select(x => x.UserId)
+            .ToList();
+
+        // Get Metadata for players
+        var result = await this
+            .FetchUsersAsync(ids.ToArray());
+            
+        return result;
+    }
 }
 
