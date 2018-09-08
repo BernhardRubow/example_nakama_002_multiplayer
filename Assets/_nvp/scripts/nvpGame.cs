@@ -141,7 +141,7 @@ public class nvpGame : MonoBehaviour
 
             lander.GetComponentInChildren<TextMesh>().text = user.DisplayName;
             lander.transform.parent = _landerParent;
-            lander.GetComponent<Renderer>().material = Instantiate(_playerMaterials[i - 1]);
+            lander.GetComponent<Renderer>().material = Instantiate(_playerMaterials[i]);
 
 
             if (_networkManager.self.Username != user.Username)
