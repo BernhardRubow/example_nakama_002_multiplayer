@@ -11,18 +11,18 @@ using Nakama;
 
 public class nvpGame : MonoBehaviour
 {
-
     // +++ public fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    
-    public Transform LanderContainer;
+    public Transform _landerParent;
     public GameObject LanderPrefab;
-    public Material[] PlayerMaterials;
 
 
 
 
     // +++ editor fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     [SerializeField] private Text _playerNumberDisplay;
-    [SerializeField] private Text _messageDisplay;
+    [SerializeField] private Text _messageDisplay;    
+    [SerializeField] Material[] _playerMaterials;
+    [SerializeField] Transform[] _playerSpawnPoints;
 
 
 
@@ -30,9 +30,12 @@ public class nvpGame : MonoBehaviour
     // +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     nvpNetworkManager _networkManager;
     string _displayName;
-    GameObject _RootCamera;
-    GameObject _GameCamera;
     List<IRemoteMessageHandler> _MessageHandlers = new List<IRemoteMessageHandler>();
+    GameObject _rootCamera;
+    GameObject _gameCamera;
+
+
+
 
     // +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     void Start()
@@ -40,12 +43,6 @@ public class nvpGame : MonoBehaviour
         Init();
         StartCoroutine(WaitForPlayers());
         SubcribeToEvents();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
 
@@ -56,8 +53,9 @@ public class nvpGame : MonoBehaviour
     {
         UnsubscribeFromEvents();
 
-        _RootCamera.SetActive(true);
-        _GameCamera.SetActive(false);
+        // Restore old camera configuration
+        _rootCamera.SetActive(true);
+        _gameCamera.SetActive(false);
     }
 
     void OnMessageReceived(object s, object e)
@@ -66,9 +64,6 @@ public class nvpGame : MonoBehaviour
         {
             remote.HandleMessage(e);
         }
-
-        //string id = s as string;
-        //_messageDisplay.text = e as string;
     }
 
     IEnumerator WaitForPlayers()
@@ -85,68 +80,14 @@ public class nvpGame : MonoBehaviour
 
     private async void DisplayUsersOnline()
     {
-        StopAllCoroutines();
+        IApiUsers result = await GetPlayerMetaData();
 
-        // list players in game in console
-        List<string> ids = _networkManager
-            .GetConnectedUsers()
-            .OrderBy(x => x.UserId)
-            .Select(x => x.UserId)
-            .ToList();
+        // Spawn players
+        SpawnLocalAndRemotePlayer(result);
 
-        // Get Metadata for players
-        var result = await _networkManager
-            .FetchUsersAsync(ids.ToArray());
-
-        // When loaded show Displayname in console
-        int i = 0;
-        foreach (IApiUser player in result.Users)
-        {
-            i++;
-            Debug.LogFormat("Player {0}: {1}", i, player.DisplayName);
-        }
-
-        // get myself from user metadata
-        _displayName = result.Users.Single(x => x.Id == _networkManager.self.UserId).DisplayName;
-
-
-        var newPlayerSpawn = new Vector3(-5, 16, 0);
-
-        i = 0;
-        foreach (var u in result.Users)
-        {
-			i++;
-            Debug.LogFormat("User id '{0}' username '{1}' displayname '{2}'", u.Id, u.Username, u.DisplayName);
-
-            var lander = Instantiate(LanderPrefab, newPlayerSpawn, Quaternion.identity);
-            lander.GetComponentInChildren<TextMesh>().text = u.DisplayName;
-            lander.transform.parent = LanderContainer;
-            newPlayerSpawn.x += 10;
-            lander.GetComponent<Renderer>().material = Instantiate(PlayerMaterials[i-1]);
-
-
-            if (_networkManager.self.Username != u.Username)
-            {
-                var controller = lander.AddComponent<stsRemoteController>();
-                _MessageHandlers.Add(controller);
-
-                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
-                fireRocketComponent.IsLocalPlayer = false;
-                _MessageHandlers.Add(fireRocketComponent);
-            }
-            else
-            {
-                lander.AddComponent<stsLanderController>();
-
-                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
-                fireRocketComponent.IsLocalPlayer = true;
-            }
-        }
-
+        // reset players
         _playerNumberDisplay.text = "";
     }
-
-
 
 
 
@@ -156,11 +97,11 @@ public class nvpGame : MonoBehaviour
     {
         _networkManager = GameObject.Find("managers").GetComponent<nvpNetworkManager>();
 
-        _RootCamera = GameObject.Find("Main Camera");
-        _GameCamera = GameObject.Find("Game Camera");
-
-        _RootCamera.SetActive(false);
-        _GameCamera.SetActive(true);
+        // enable scene camera
+        _rootCamera = GameObject.Find("Main Camera");
+        _gameCamera = GameObject.Find("Game Camera");        
+        _rootCamera.SetActive(false);
+        _gameCamera.SetActive(true);
     }
 
     void SubcribeToEvents()
@@ -184,4 +125,57 @@ public class nvpGame : MonoBehaviour
         var message = new RocketFiredMessage(position, direction);
         _networkManager.SendDataMessage(RocketFiredMessage.OpCode, message);
     }
+
+    private void SpawnLocalAndRemotePlayer(IApiUsers result)
+    {
+        var users = result.Users.ToList();
+        for (int i = 0, n = 2; i < n; i++)
+        {
+            var user = users[i];
+            Debug.LogFormat("User id '{0}' username '{1}' displayname '{2}'", user.Id, user.Username, user.DisplayName);
+
+            var lander = Instantiate(
+                LanderPrefab,
+                _playerSpawnPoints[i].position,
+                _playerSpawnPoints[i].rotation);
+
+            lander.GetComponentInChildren<TextMesh>().text = user.DisplayName;
+            lander.transform.parent = _landerParent;
+            lander.GetComponent<Renderer>().material = Instantiate(_playerMaterials[i - 1]);
+
+
+            if (_networkManager.self.Username != user.Username)
+            {
+                var controller = lander.AddComponent<stsRemoteController>();
+                _MessageHandlers.Add(controller);
+
+                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
+                fireRocketComponent.IsLocalPlayer = false;
+                _MessageHandlers.Add(fireRocketComponent);
+            }
+            else
+            {
+                lander.AddComponent<stsLanderController>();
+
+                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
+                fireRocketComponent.IsLocalPlayer = true;
+            }
+        }
+    }
+
+    private async System.Threading.Tasks.Task<IApiUsers> GetPlayerMetaData()
+    {
+        // list players in game in console
+        List<string> ids = _networkManager
+            .GetConnectedUsers()
+            .OrderBy(x => x.UserId)
+            .Select(x => x.UserId)
+            .ToList();
+
+        // Get Metadata for players
+        var result = await _networkManager
+            .FetchUsersAsync(ids.ToArray());
+        return result;
+    }
+
 }
