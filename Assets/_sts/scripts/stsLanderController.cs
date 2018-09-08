@@ -1,11 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Assets._sts.scripts.messages;
 
-public class stsLanderController : MonoBehaviour
+public class stsLanderController : MonoBehaviour, IRemoteMessageHandler
 {
 	// +++ public fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	public Vector2 ThrusterForce = new Vector2(5, 15);
+	public bool isLocalPlayer;
+    public Vector3 _ActualPosition;
 
 
 
@@ -23,11 +26,27 @@ public class stsLanderController : MonoBehaviour
 	void Start()
 	{
 		Init();
+
+		
 	}
 
 
 	void FixedUpdate()
 	{
+		if(isLocalPlayer) MoveLocalPlayer();
+		else MoveRemotePlayer();
+	}
+
+
+
+
+	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+	private void Init(){
+		_Body = this.GetComponent<Rigidbody>();
+		_MultiplayerManager = GameObject.Find("sceneManagers").GetComponent<nvpMultiplayerManager>();
+	}
+
+	private void MoveLocalPlayer(){
 		_ForceVector.x = Input.GetAxis("Horizontal") * ThrusterForce.x;
 		_ForceVector.y = Input.GetAxis("Vertical") * ThrusterForce.y;
 		_Body.AddForce(_ForceVector, ForceMode.Force);
@@ -40,12 +59,23 @@ public class stsLanderController : MonoBehaviour
 		}
 	}
 
-
-
-
-	// +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	private void Init(){
-		_Body = this.GetComponent<Rigidbody>();
-		_MultiplayerManager = GameObject.Find("sceneManagers").GetComponent<nvpMultiplayerManager>();
+	private void MoveRemotePlayer(){
+		transform.position = Vector3.Lerp(transform.position, _ActualPosition, 0.2f);
 	}
+
+	public void RemoveRigidBody(){
+		_Body = this.GetComponent<Rigidbody>();
+        Destroy(_Body);
+	}
+
+
+    // +++ interface methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public void HandleMessage(object msg)
+    {
+        if (msg is PositionUpdateMessage)
+        {
+            var positionUpdateMessage = (PositionUpdateMessage)msg;
+            _ActualPosition = positionUpdateMessage.ToPosition();
+        }
+    }
 }

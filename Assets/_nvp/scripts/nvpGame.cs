@@ -142,7 +142,9 @@ public class nvpGame : MonoBehaviour
                 // we instantiate the local player
                 
                 // so we attach the remote player script
-                var controller = lander.AddComponent<stsRemoteController>();
+                var controller = lander.AddComponent<stsLanderController>();
+                controller.isLocalPlayer = false;
+                controller.RemoveRigidBody();
                 _MessageHandlers.Add(controller);
 
                 var fireRocketComponent = lander.AddComponent<stsFireRocket>();
@@ -156,14 +158,12 @@ public class nvpGame : MonoBehaviour
                 // we instantiate the local player
 
                 // so we ha to attach the local player script
-                lander.AddComponent<stsLanderController>();
+                var controller = lander.AddComponent<stsLanderController>();
+                controller.isLocalPlayer = true;
 
                 var fireRocketComponent = lander.AddComponent<stsFireRocket>();
                 fireRocketComponent.IsLocalPlayer = true;
             }
         }
     }
-
-    
-
 }
