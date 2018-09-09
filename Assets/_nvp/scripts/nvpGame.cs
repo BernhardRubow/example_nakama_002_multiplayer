@@ -142,7 +142,7 @@ public class nvpGame : MonoBehaviour
                 // we instantiate the local player
                 
                 // so we attach the remote player script
-                var controller = lander.AddComponent<stsLanderController>();
+                var controller = lander.GetComponent<stsLanderController>();
                 controller.isLocalPlayer = false;
                 controller.RemoveRigidBody();
                 _MessageHandlers.Add(controller);
@@ -158,8 +158,14 @@ public class nvpGame : MonoBehaviour
                 // we instantiate the local player
 
                 // so we ha to attach the local player script
-                var controller = lander.AddComponent<stsLanderController>();
+                var controller = lander.GetComponent<stsLanderController>();
                 controller.isLocalPlayer = true;
+
+                // inform all scripts on the lander that they are on the local player
+                foreach (var localPlayerAwareScript in lander.GetComponentsInChildren<ILocalPlayerAwareScript>()){
+                    Debug.Log("set local aware script");
+                    localPlayerAwareScript.SetIsLocalPlayer();
+                }
 
                 var fireRocketComponent = lander.AddComponent<stsFireRocket>();
                 fireRocketComponent.IsLocalPlayer = true;
