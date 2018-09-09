@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class nvpRocketLauncher : MonoBehaviour, IMissleLauncher, ILocalPlayerAwareScript
+public class nvpRocketLauncher : MonoBehaviour, IMissleLauncher
 {
 
     // +++ public fields ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++    
@@ -13,14 +13,20 @@ public class nvpRocketLauncher : MonoBehaviour, IMissleLauncher, ILocalPlayerAwa
 
 
 
+
     // +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private bool _fireMissile;
     // +++ unity callbacks ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-	void Update(){
-		if(!_isLocalPlayerScript) return;
-		if (Input.GetKeyUp(KeyCode.F)){
-			LaunchMissle(this.transform.forward);
-		}
-	}
+    void Update()
+    {
+        if (!_fireMissile) return;
+        _fireMissile = false;
+        var rocket = Instantiate(
+            _rocketPrefab,
+            _rocketSpawnPoint.transform.position,
+            _rocketSpawnPoint.transform.rotation
+        );
+    }
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -30,16 +36,7 @@ public class nvpRocketLauncher : MonoBehaviour, IMissleLauncher, ILocalPlayerAwa
     // +++ interface methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     public void LaunchMissle(Vector3 directionOfLaunch)
     {
-        var rocket = Instantiate(
-            _rocketPrefab,
-            _rocketSpawnPoint.transform.position,
-            _rocketSpawnPoint.transform.rotation
-        );
-    }
-
-    public void SetIsLocalPlayer()
-    {
-        _isLocalPlayerScript = true;
+        _fireMissile = true;
     }
 }
 

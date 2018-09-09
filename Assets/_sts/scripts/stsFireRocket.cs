@@ -10,7 +10,7 @@ namespace Assets._sts.scripts
 {
 
 
-    public class stsFireRocket : MonoBehaviour, IRemoteMessageHandler
+    public class stsFireRocket : MonoBehaviour, IRemoteMessageHandler, ILocalPlayerAwareScript
     {
         // +++ public fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         public bool IsLocalPlayer;
@@ -22,6 +22,7 @@ namespace Assets._sts.scripts
         private nvpGame _Game;
         private nvpMultiplayerManager _MultiplayerManager;
         private Rigidbody _Body;
+        private IMissleLauncher _missleLauncher;
 
 
 
@@ -36,10 +37,10 @@ namespace Assets._sts.scripts
         {
             if (!IsLocalPlayer) return;
 
-            if (Input.GetButtonDown("Fire1"))
+            if (Input.GetButtonDown("Fire1") || Input.GetKeyUp(KeyCode.F))
             {
                 var direction = _Body.velocity;
-                CreateRocket(_Body.position, direction);
+                CreateRocket(direction);
                 _MultiplayerManager.SendRocket(_Body.position, direction);
             }
         }
@@ -53,7 +54,7 @@ namespace Assets._sts.scripts
             if (msg is RocketFiredMessage)
             {
                 var positionUpdateMessage = (RocketFiredMessage)msg;
-                CreateRocket(positionUpdateMessage.ToPosition(), positionUpdateMessage.ToDirection());
+                CreateRocket(positionUpdateMessage.ToDirection());
             }
         }
 
@@ -61,15 +62,21 @@ namespace Assets._sts.scripts
 
 
         // +++ class methods ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        private void CreateRocket(Vector3 position, Vector3 direction)
+        private void CreateRocket(Vector3 direction)
         {
-            Debug.Log($"Fire rocket (Local? {IsLocalPlayer})");
+            _missleLauncher.LaunchMissle(direction);
         }
 
         private void Init()
         {
             _Body = this.GetComponent<Rigidbody>();
             _MultiplayerManager = GameObject.Find("sceneManagers").GetComponent<nvpMultiplayerManager>();
+            _missleLauncher = this.GetComponentInChildren<IMissleLauncher>();
+        }
+
+        public void SetIsLocalPlayer()
+        {
+            IsLocalPlayer = true;
         }
     }
 

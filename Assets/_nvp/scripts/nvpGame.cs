@@ -28,8 +28,9 @@ public class nvpGame : MonoBehaviour
 
     // +++ private fields +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     nvpNetworkManager _networkManager;
+    nvpMultiplayerManager _multiplayerManager;
     string _displayName;
-    List<IRemoteMessageHandler> _MessageHandlers = new List<IRemoteMessageHandler>();
+    
     GameObject _rootCamera;
     GameObject _gameCamera;
 
@@ -41,7 +42,6 @@ public class nvpGame : MonoBehaviour
     {
         Init();
         StartCoroutine(WaitForPlayers());
-        SubcribeToEvents();
     }
 
 
@@ -50,19 +50,10 @@ public class nvpGame : MonoBehaviour
     // +++ event handler ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     void OnDestroy()
     {
-        UnsubscribeFromEvents();
 
         // Restore old camera configuration
         _rootCamera.SetActive(true);
         _gameCamera.SetActive(false);
-    }
-
-    void OnMessageReceived(object s, object e)
-    {
-        foreach (var remote in _MessageHandlers)
-        {
-            remote.HandleMessage(e);
-        }
     }
 
     IEnumerator WaitForPlayers()
@@ -95,22 +86,13 @@ public class nvpGame : MonoBehaviour
     public void Init()
     {
         _networkManager = GameObject.Find("managers").GetComponent<nvpNetworkManager>();
-
+        _multiplayerManager = this.gameObject.GetComponent<nvpMultiplayerManager>();
+        
         // enable scene camera
         _rootCamera = GameObject.Find("Main Camera");
         _gameCamera = GameObject.Find("Game Camera");        
         _rootCamera.SetActive(false);
         _gameCamera.SetActive(true);
-    }
-
-    void SubcribeToEvents()
-    {
-        nvpEventManager.INSTANCE.Subscribe(GameEvents.OnMessageReceived, OnMessageReceived);
-    }
-
-    void UnsubscribeFromEvents()
-    {
-        nvpEventManager.INSTANCE.Unsubscribe(GameEvents.OnMessageReceived, OnMessageReceived);
     }
 
     private void SpawnLocalAndRemotePlayer(IApiUsers playerMetaData)
@@ -145,11 +127,10 @@ public class nvpGame : MonoBehaviour
                 var controller = lander.GetComponent<stsLanderController>();
                 controller.isLocalPlayer = false;
                 controller.RemoveRigidBody();
-                _MessageHandlers.Add(controller);
+                _multiplayerManager.AddMessageHandler(controller);
 
                 var fireRocketComponent = lander.AddComponent<stsFireRocket>();
-                fireRocketComponent.IsLocalPlayer = false;
-                _MessageHandlers.Add(fireRocketComponent);
+                _multiplayerManager.AddMessageHandler(fireRocketComponent);
             }
             else
             {
@@ -159,16 +140,13 @@ public class nvpGame : MonoBehaviour
 
                 // so we ha to attach the local player script
                 var controller = lander.GetComponent<stsLanderController>();
+                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
                 controller.isLocalPlayer = true;
 
                 // inform all scripts on the lander that they are on the local player
                 foreach (var localPlayerAwareScript in lander.GetComponentsInChildren<ILocalPlayerAwareScript>()){
-                    Debug.Log("set local aware script");
                     localPlayerAwareScript.SetIsLocalPlayer();
-                }
-
-                var fireRocketComponent = lander.AddComponent<stsFireRocket>();
-                fireRocketComponent.IsLocalPlayer = true;
+                }               
             }
         }
     }
